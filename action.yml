@@ -1,0 +1,54 @@
+name: "Setup BentoML"
+description: "Bootstrap and setup base environment for BentoML"
+branding:
+  icon: 'box'
+  color: 'orange'
+inputs:
+  bentoml-version:
+    description: The version of BentoML to use. Leave it empty to use the latest version, set to 'main' to use 'nightly'
+    required: false
+    default: ""
+  python-version:
+    description: Default Python version to pass through to actions/setup-python. Default to 3.10
+    required: false
+    default: "3.10"
+  architecture:
+    description: 'Which architecture to run on'
+    required: false
+    default: x64
+runs:
+  using: composite
+  steps:
+    - name: Setup python
+      uses: actions/setup-python@61a6322f88396a6271a6ee3565807d608ecaddd1 # ratchet:actions/setup-python@v4
+      with:
+        python-version: ${{ inputs.python-version }}
+        architecture: ${{ inputs.architecture }}
+    - name: Get cache key prefix
+      id: get-cache-key-prefix
+      shell: bash
+      run: echo "prefix=${{ runner.os }}-${{ inputs.python-version }}" >> $GITHUB_OUTPUT
+    - name: Get pip cache dir
+      id: pip-cache-dir
+      shell: bash
+      run: echo "dir=$(pip cache dir)" >> $GITHUB_OUTPUT
+    - name: Cache pip dependencies
+      uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # ratchet:actions/cache@v3
+      id: cache-pip
+      with:
+        path: ${{ steps.pip-cache-dir.outputs.dir }}
+        key: ${{ steps.get-cache-key-prefix.outputs.prefix }}-pypi
+        restore-keys: |
+          ${{ steps.get-cache-key-prefix.outputs.prefix }}-pypi-
+    - name: Install core bentoml and adjacent tooling (hatch, towncrier)
+      shell: bash
+      run: |
+        if [[ -n "${{ inputs.bentoml-version }}" ]]; then
+          pip install -U "bentoml==${{ inputs.bentoml_version }}"
+        else if [[ "${{ inputs.bentoml-version }}" == "main" ]]; then
+          pip install -U "git+https://github.com/bentoml/bentoml@main"
+        else
+          pip install -U "bentoml>=1.0.25"
+        fi
+        echo "Successfully installed BentoML: $(bentoml --version)"
+        pip install hatch towncrier
