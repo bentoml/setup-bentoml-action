@@ -9,9 +9,11 @@ inputs:
     required: false
     default: ""
   python-version:
-    description: Default Python version to pass through to actions/setup-python. Default to 3.10
+    description: Default Python version to pass through to actions/setup-python
     required: false
-    default: "3.10"
+  python-version-file:
+    description: "File containing the Python version to use. Example: .python-version"
+    required: false
   architecture:
     description: 'Which architecture to run on'
     required: false
@@ -22,6 +24,7 @@ runs:
     - name: Setup python
       uses: actions/setup-python@61a6322f88396a6271a6ee3565807d608ecaddd1 # ratchet:actions/setup-python@v4
       with:
+        python-version-file: ${{ inputs.python-version-file }}
         python-version: ${{ inputs.python-version }}
         architecture: ${{ inputs.architecture }}
     - name: Get cache key prefix
