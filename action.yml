@@ -46,10 +46,10 @@ runs:
     - name: Install core bentoml and adjacent tooling (hatch, towncrier)
       shell: bash
       run: |
-        if [[ -n "${{ inputs.bentoml-version }}" ]]; then
-          pip install -U "bentoml==${{ inputs.bentoml_version }}"
-        else if [[ "${{ inputs.bentoml-version }}" == "main" ]]; then
+        if [[ "${{ inputs.bentoml-version }}" == "main" ]]; then
           pip install -U "git+https://github.com/bentoml/bentoml@main"
+        elif [[ -n "${{ inputs.bentoml-version }}" ]]; then
+          pip install -U "bentoml==${{ inputs.bentoml_version }}"
         else
           pip install -U "bentoml>=1.0.25"
         fi
